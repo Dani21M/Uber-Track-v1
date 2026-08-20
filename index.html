@@ -6,6 +6,7 @@
 <title>Tablero · Dani</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..900&family=Archivo+Black&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
     --asfalto:#101318; --panel:#1A1F27; --panel2:#151A21; --linea:#2A313C;
@@ -150,7 +151,7 @@
 
 <header>
   <h1>Tablero <span>·</span> Dani</h1>
-  <div id="fechaHoy" class="num"></div>
+  <div style="text-align:right;"><div id="fechaHoy" class="num"></div><div id="nubeEstado" style="font-size:0.65rem;">…</div></div>
 </header>
 
 <main>
@@ -337,30 +338,69 @@ const $ = id => document.getElementById(id);
 const fmt = n => '$' + Math.round(n||0).toLocaleString('es-CO');
 const hoyISO = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
 
-/* ================= STORAGE (dual: Claude o navegador) =================
-   Dentro de Claude usa window.storage; abierto en el navegador del celular
-   usa localStorage. Mismos datos, distinto motor según dónde lo abras. */
-const enClaude = typeof window.storage !== 'undefined' && window.storage && typeof window.storage.get === 'function';
+/* ================= CONFIGURACIÓN SUPABASE =================
+   ⬇️ EDITA SOLO ESTAS 2 LÍNEAS con los datos de tu proyecto ⬇️ */
+const SUPABASE_URL = 'https://vfypmrcwfrylbyfpsydj.supabase.co';        // ej: https://abcd1234.supabase.co
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmeXBtcmN3ZnJ5bGJ5ZnBzeWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxOTIxMDUsImV4cCI6MjEwMjc2ODEwNX0.RDRoVuvDIDlS6jI1tI0_sEEo6BeGG1wv1WgmPiwBEWc';      // la "anon public" o "publishable"
+/* ⬆️ NADA MÁS SE EDITA ⬆️ ======================================== */
 
-async function stGet(clave){
-  if(enClaude){
-    try{ const r = await window.storage.get(clave); return r && r.value ? r.value : null; }catch(e){ return null; }
-  }
-  try{ return localStorage.getItem('tablero_'+clave); }catch(e){ return null; }
-}
-async function stSet(clave, valor){
-  if(enClaude){
-    try{ await window.storage.set(clave, valor); return true; }catch(e){ return false; }
-  }
-  try{ localStorage.setItem('tablero_'+clave, valor); return true; }catch(e){ return false; }
+const nube = (SUPABASE_URL.startsWith('https://') && !SUPABASE_URL.includes('PEGA') && window.supabase)
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+function lsGet(k){ try{ return localStorage.getItem('tablero_'+k); }catch(e){ return null; } }
+function lsSet(k,v){ try{ localStorage.setItem('tablero_'+k, v); return true; }catch(e){ return false; } }
+function setNube(ok, err){
+  const el = document.getElementById('nubeEstado'); if(!el) return;
+  el.textContent = ok ? '☁️ sincronizado' : (err ? '⚠️ sin conexión' : '📴 solo local');
+  el.style.color = ok ? 'var(--verde)' : (err ? 'var(--rojo)' : 'var(--tenue)');
 }
 
 async function cargar(){
-  const c = await stGet('conf'); if(c){ try{ conf = {...DEF_CONF, ...JSON.parse(c)}; }catch(e){} }
-  const en = await stGet('entradas'); if(en){ try{ entradas = JSON.parse(en); }catch(e){} }
+  const c = lsGet('conf'); if(c){ try{ conf = {...DEF_CONF, ...JSON.parse(c)}; }catch(e){} }
+  if(nube){
+    try{
+      const {data, error} = await nube.from('jornadas').select('*').order('fecha', {ascending:false});
+      if(error) throw error;
+      entradas = data.map(d=>({id:d.id, fecha:d.fecha, app:d.app, horas:+d.horas||0, viajes:d.viajes||0, bruto:d.bruto||0, neto:d.neto||0, km:+d.km||0, gas:d.gas||0}));
+      lsSet('entradas', JSON.stringify(entradas));
+      setNube(true);
+      return;
+    }catch(e){ setNube(false, true); }
+  } else { setNube(false); }
+  const en = lsGet('entradas'); if(en){ try{ entradas = JSON.parse(en); }catch(e){} }
 }
-async function guardarConf(){ const ok = await stSet('conf', JSON.stringify(conf)); if(!ok) toast('No se pudo guardar', true); }
-async function guardarEntradas(){ const ok = await stSet('entradas', JSON.stringify(entradas)); if(!ok) toast('No se pudo guardar', true); }
+async function guardarConf(){ if(!lsSet('conf', JSON.stringify(conf))) toast('No se pudo guardar', true); }
+
+async function insertarJornada(e){
+  if(nube){
+    const {data, error} = await nube.from('jornadas')
+      .insert({fecha:e.fecha, app:e.app, horas:e.horas, viajes:e.viajes, bruto:e.bruto, neto:e.neto, km:e.km, gas:e.gas})
+      .select().single();
+    if(error){ toast('Sin conexión: intenta de nuevo', true); return null; }
+    e.id = data.id;
+  }
+  entradas.push(e);
+  entradas.sort((a,b)=> a.fecha < b.fecha ? 1 : -1);
+  lsSet('entradas', JSON.stringify(entradas));
+  return e;
+}
+async function eliminarJornada(id){
+  if(nube){
+    const {error} = await nube.from('jornadas').delete().eq('id', id);
+    if(error){ toast('Sin conexión: intenta de nuevo', true); return false; }
+  }
+  entradas = entradas.filter(x=>x.id != id);
+  lsSet('entradas', JSON.stringify(entradas));
+  return true;
+}
+async function vaciarJornadas(){
+  if(nube){
+    const {error} = await nube.from('jornadas').delete().gt('id', 0);
+    if(error){ toast('Sin conexión: intenta de nuevo', true); return false; }
+  }
+  entradas = []; lsSet('entradas', '[]');
+  return true;
+}
 
 /* ================= NAV ================= */
 document.querySelectorAll('nav button').forEach(b=>{
@@ -396,9 +436,8 @@ $('btnGuardar').addEventListener('click', async ()=>{
     gas: parseInt($('rGas').value)||0
   };
   if(!e.bruto && !e.horas){ toast('Ingresa al menos horas y facturado', true); return; }
-  entradas.push(e);
-  entradas.sort((a,b)=> a.fecha < b.fecha ? 1 : -1);
-  await guardarEntradas();
+  const g = await insertarJornada(e);
+  if(!g) return;
   ['rHoras','rViajes','rBruto','rNeto','rKm','rGas'].forEach(id=>$(id).value='');
   toast('Jornada guardada ✓');
   pintarRegs(); pintarHoy();
@@ -418,8 +457,7 @@ function pintarRegs(){
   }).join('');
   cont.querySelectorAll('.borrar').forEach(b=>{
     b.addEventListener('click', async ()=>{
-      entradas = entradas.filter(x=>x.id != b.dataset.id);
-      await guardarEntradas();
+      if(!(await eliminarJornada(b.dataset.id))) return;
       pintarRegs(); pintarHoy();
       toast('Jornada borrada');
     });
@@ -607,7 +645,7 @@ $('btnExport').addEventListener('click', ()=>{
 });
 $('btnReset').addEventListener('click', async ()=>{
   if(!confirm('¿Borrar TODAS las jornadas? Esta acción no se puede deshacer.')) return;
-  entradas=[]; await guardarEntradas();
+  if(!(await vaciarJornadas())) return;
   pintarRegs(); pintarHoy(); pintarTendencias();
   toast('Jornadas borradas');
 });
