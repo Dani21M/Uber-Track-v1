@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Tablero · Dani</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..900&family=Archivo+Black&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --asfalto:#101318; --panel:#1A1F27; --panel2:#151A21; --linea:#2A313C;
+    --texto:#E8ECF1; --tenue:#8B95A3;
+    --ambar:#FFB020; --verde:#3DDC84; --rojo:#FF4D5E;
+    --radius:14px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
+  html{font-size:16px;}
+  body{
+    background:var(--asfalto); color:var(--texto);
+    font-family:'Archivo', -apple-system, 'Segoe UI', Roboto, sans-serif;
+    font-variation-settings:'wdth' 88;
+    min-height:100vh; padding-bottom:84px;
+  }
+  .num{font-variant-numeric:tabular-nums; letter-spacing:-0.01em;}
+  h1,h2,.display{font-family:'Archivo Black','Archivo', sans-serif; font-weight:900;}
+
+  header{
+    padding:18px 18px 10px; display:flex; align-items:baseline; justify-content:space-between;
+    border-bottom:1px solid var(--linea);
+  }
+  header h1{font-size:1.05rem; letter-spacing:0.06em; text-transform:uppercase;}
+  header h1 span{color:var(--ambar);}
+  #fechaHoy{color:var(--tenue); font-size:0.8rem;}
+
+  main{padding:16px 14px 8px; max-width:520px; margin:0 auto;}
+  .vista{display:none;}
+  .vista.activa{display:block; animation:entra .25s ease;}
+  @keyframes entra{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
+  @media (prefers-reduced-motion: reduce){ .vista.activa{animation:none;} }
+
+  .card{background:var(--panel); border:1px solid var(--linea); border-radius:var(--radius); padding:16px; margin-bottom:14px;}
+  .eyebrow{font-size:0.68rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--tenue); margin-bottom:6px;}
+
+  /* ===== Semáforo + odómetro ===== */
+  .semaforo{display:flex; align-items:center; gap:10px; margin-bottom:12px;}
+  .luces{display:flex; gap:6px;}
+  .luz{width:14px; height:14px; border-radius:50%; background:#2A313C; transition:all .3s;}
+  .luz.on-r{background:var(--rojo); box-shadow:0 0 12px var(--rojo);}
+  .luz.on-a{background:var(--ambar); box-shadow:0 0 12px var(--ambar);}
+  .luz.on-v{background:var(--verde); box-shadow:0 0 12px var(--verde);}
+  .estado-txt{font-weight:700; font-size:0.85rem;}
+
+  .odometro{font-family:'Archivo Black'; font-size:2.6rem; line-height:1; margin:4px 0 2px;}
+  .odometro small{font-size:1.1rem; color:var(--tenue); font-family:'Archivo';}
+
+  .gauge{position:relative; height:18px; background:var(--panel2); border:1px solid var(--linea); border-radius:9px; margin:14px 0 4px; overflow:visible;}
+  .gauge-fill{position:absolute; left:0; top:0; bottom:0; width:0; border-radius:9px; background:linear-gradient(90deg, var(--rojo), var(--ambar) 55%, var(--verde)); transition:width .5s ease; max-width:100%;}
+  .tick{position:absolute; top:-5px; bottom:-5px; width:2px; background:var(--texto); opacity:.7;}
+  .tick-label{position:absolute; top:22px; font-size:0.62rem; color:var(--tenue); transform:translateX(-50%); white-space:nowrap;}
+  .gauge-wrap{padding-bottom:22px;}
+
+  .fila-datos{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px;}
+  .dato{background:var(--panel2); border:1px solid var(--linea); border-radius:10px; padding:10px 12px;}
+  .dato .v{font-size:1.25rem; font-weight:800;}
+  .dato .l{font-size:0.68rem; color:var(--tenue); text-transform:uppercase; letter-spacing:0.08em;}
+
+  /* ===== Formularios ===== */
+  label{display:block; font-size:0.72rem; color:var(--tenue); text-transform:uppercase; letter-spacing:0.1em; margin:12px 0 5px;}
+  input, select{
+    width:100%; padding:13px 14px; font-size:1.05rem; color:var(--texto);
+    background:var(--panel2); border:1px solid var(--linea); border-radius:10px;
+    font-family:inherit;
+  }
+  input:focus, select:focus{outline:2px solid var(--ambar); outline-offset:1px; border-color:var(--ambar);}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+
+  .toggle-app{display:flex; gap:8px; margin-top:5px;}
+  .toggle-app button{
+    flex:1; padding:12px; border-radius:10px; border:1px solid var(--linea);
+    background:var(--panel2); color:var(--tenue); font-weight:700; font-size:0.95rem; cursor:pointer;
+  }
+  .toggle-app button.sel{background:var(--ambar); color:#101318; border-color:var(--ambar);}
+
+  .btn{
+    width:100%; padding:15px; margin-top:18px; border:none; border-radius:12px;
+    background:var(--ambar); color:#101318; font-family:'Archivo Black'; font-size:1rem;
+    letter-spacing:0.04em; cursor:pointer; text-transform:uppercase;
+  }
+  .btn:active{transform:scale(.98);}
+  .btn.sec{background:transparent; border:1px solid var(--linea); color:var(--tenue); font-family:'Archivo'; font-weight:700; text-transform:none; padding:11px;}
+  .btn.peligro{background:transparent; border:1px solid var(--rojo); color:var(--rojo);}
+
+  /* ===== Registros lista ===== */
+  .reg{display:flex; justify-content:space-between; align-items:center; padding:11px 4px; border-bottom:1px solid var(--linea); gap:8px;}
+  .reg:last-child{border-bottom:none;}
+  .reg .izq .f{font-weight:700; font-size:0.9rem;}
+  .reg .izq .d{font-size:0.72rem; color:var(--tenue);}
+  .reg .der{text-align:right;}
+  .reg .der .m{font-weight:800;}
+  .reg .der .h{font-size:0.72rem; color:var(--tenue);}
+  .reg .borrar{background:none; border:none; color:var(--tenue); font-size:1.1rem; cursor:pointer; padding:6px;}
+  .badge{display:inline-block; font-size:0.6rem; padding:2px 7px; border-radius:20px; border:1px solid var(--linea); color:var(--tenue); margin-left:6px; vertical-align:middle;}
+
+  /* ===== Utilidades de layout/tipografía (evitan estilos inline) ===== */
+  .txt-der{text-align:right;}
+  .mt4{margin-top:4px;}
+  .fw800{font-weight:800;}
+  .fuerte{color:var(--texto);}
+  .fila-cuota{display:flex; justify-content:space-between; align-items:baseline;}
+  .odometro.sm{font-size:1.7rem;}
+  .etiqueta-dias{font-size:0.68rem; color:var(--tenue); text-transform:uppercase;}
+  #nubeEstado{font-size:0.65rem;}
+  #msgCuota{font-size:0.8rem; color:var(--tenue); margin-top:8px;}
+  .card-reglas{font-size:0.78rem; color:var(--tenue); line-height:1.55;}
+  .veredicto-sub{font-size:0.85rem; color:var(--tenue); margin-top:2px;}
+  .veredicto-nota{font-size:0.78rem; margin-top:8px; color:var(--tenue);}
+  .nota-tendencia{font-size:0.7rem; color:var(--tenue); margin-top:8px;}
+  .lbl-ancho{width:52px;}
+
+  /* ===== Veredicto calculadora ===== */
+  .veredicto{border-radius:var(--radius); padding:18px; text-align:center; margin-top:16px; border:1px solid var(--linea);}
+  .veredicto.tomalo{background:rgba(61,220,132,.08); border-color:var(--verde);}
+  .veredicto.dejalo{background:rgba(255,77,94,.08); border-color:var(--rojo);}
+  .veredicto.dudoso{background:rgba(255,176,32,.08); border-color:var(--ambar);}
+  .veredicto .titulo{font-family:'Archivo Black'; font-size:1.5rem;}
+  .veredicto.tomalo .titulo{color:var(--verde);}
+  .veredicto.dejalo .titulo{color:var(--rojo);}
+  .veredicto.dudoso .titulo{color:var(--ambar);}
+  .veredicto ul{list-style:none; margin-top:10px; text-align:left; font-size:0.82rem;}
+  .veredicto li{padding:3px 0; color:var(--tenue);}
+  .veredicto li b{color:var(--texto);}
+
+  /* ===== Barras tendencias ===== */
+  .barra-fila{display:flex; align-items:center; gap:10px; margin:8px 0;}
+  .barra-fila .lbl{width:38px; font-size:0.72rem; color:var(--tenue); text-transform:uppercase;}
+  .barra-pista{flex:1; height:22px; background:var(--panel2); border-radius:6px; overflow:hidden;}
+  .barra{height:100%; background:var(--ambar); border-radius:6px; min-width:2px; transition:width .5s;}
+  .barra.v{background:var(--verde);}
+  .barra-fila .val{width:70px; text-align:right; font-size:0.78rem; font-weight:700;}
+
+  .vacio{text-align:center; color:var(--tenue); padding:26px 10px; font-size:0.88rem; line-height:1.5;}
+  .toast{
+    position:fixed; bottom:96px; left:50%; transform:translateX(-50%);
+    background:var(--verde); color:#101318; font-weight:800; padding:11px 22px;
+    border-radius:30px; font-size:0.9rem; opacity:0; pointer-events:none; transition:opacity .3s; z-index:60;
+  }
+  .toast.ver{opacity:1;}
+
+  /* ===== Nav inferior ===== */
+  nav{
+    position:fixed; bottom:0; left:0; right:0; z-index:50;
+    background:var(--panel); border-top:1px solid var(--linea);
+    display:flex; padding:6px 4px calc(6px + env(safe-area-inset-bottom));
+  }
+  nav button{
+    flex:1; background:none; border:none; color:var(--tenue); cursor:pointer;
+    font-family:inherit; font-size:0.62rem; text-transform:uppercase; letter-spacing:0.05em;
+    padding:6px 2px; border-radius:10px;
+  }
+  nav button .ico{display:block; font-size:1.25rem; margin-bottom:2px;}
+  nav button.activa{color:var(--ambar);}
+  nav button:focus-visible{outline:2px solid var(--ambar);}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Tablero <span>·</span> Dani</h1>
+  <div class="txt-der"><div id="fechaHoy" class="num"></div><div id="nubeEstado">…</div></div>
+</header>
+
+<main>
+
+  <!-- ============ VISTA HOY ============ -->
+  <section id="v-hoy" class="vista activa">
+    <div class="card">
+      <div class="eyebrow">Facturado hoy</div>
+      <div class="semaforo">
+        <div class="luces">
+          <div class="luz" id="lz-r"></div><div class="luz" id="lz-a"></div><div class="luz" id="lz-v"></div>
+        </div>
+        <div class="estado-txt" id="estadoTxt">Sin registros hoy</div>
+      </div>
+      <div class="odometro num" id="odoHoy">$0</div>
+      <div class="gauge-wrap">
+        <div class="gauge">
+          <div class="gauge-fill" id="gaugeHoy"></div>
+          <div class="tick" id="tickMin"></div>
+          <div class="tick" id="tickMeta"></div>
+          <div class="tick-label" id="tickMinL">mín</div>
+          <div class="tick-label" id="tickMetaL">meta</div>
+        </div>
+      </div>
+      <div class="fila-datos">
+        <div class="dato"><div class="v num" id="horaHoy">—</div><div class="l">$ / hora hoy</div></div>
+        <div class="dato"><div class="v num" id="viajesHoy">—</div><div class="l">Viajes hoy</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="eyebrow">Esta semana (lun–dom)</div>
+      <div class="odometro num sm" id="odoSemana">$0</div>
+      <div class="gauge-wrap">
+        <div class="gauge">
+          <div class="gauge-fill" id="gaugeSem"></div>
+          <div class="tick" id="tickSemMin"></div>
+          <div class="tick" id="tickSemMeta"></div>
+          <div class="tick-label" id="tickSemMinL">mín</div>
+          <div class="tick-label" id="tickSemMetaL">meta</div>
+        </div>
+      </div>
+      <div class="fila-datos">
+        <div class="dato"><div class="v num" id="gasSemana">$0</div><div class="l">Gasolina semana</div></div>
+        <div class="dato"><div class="v num" id="netoSemana">$0</div><div class="l">Neto − gasolina</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="eyebrow">Rumbo a la cuota del <span id="diaPagoLbl">25</span></div>
+      <div class="fila-cuota">
+        <div class="odometro num sm" id="odoMes">$0</div>
+        <div class="txt-der">
+          <div class="v num fw800" id="diasFaltan">—</div>
+          <div class="etiqueta-dias">días para el pago</div>
+        </div>
+      </div>
+      <div id="msgCuota"></div>
+    </div>
+  </section>
+
+  <!-- ============ VISTA REGISTRAR ============ -->
+  <section id="v-reg" class="vista">
+    <div class="card">
+      <div class="eyebrow">Registrar jornada · 2 minutos</div>
+      <label for="rFecha">Fecha</label>
+      <input type="date" id="rFecha">
+      <label>App</label>
+      <div class="toggle-app">
+        <button type="button" id="appUber" class="sel">Uber</button>
+        <button type="button" id="appDidi">DiDi</button>
+        <button type="button" id="appAmbas">Ambas</button>
+      </div>
+      <div class="grid2">
+        <div><label for="rHoras">Horas conectada</label><input type="number" inputmode="decimal" step="0.5" id="rHoras" placeholder="6.5"></div>
+        <div><label for="rViajes">Viajes</label><input type="number" inputmode="numeric" id="rViajes" placeholder="11"></div>
+      </div>
+      <div class="grid2">
+        <div><label for="rBruto">Facturado bruto $</label><input type="number" inputmode="numeric" id="rBruto" placeholder="145000"></div>
+        <div><label for="rNeto">Neto (post comisión) $</label><input type="number" inputmode="numeric" id="rNeto" placeholder="108000"></div>
+      </div>
+      <div class="grid2">
+        <div><label for="rKm">Km del día</label><input type="number" inputmode="numeric" id="rKm" placeholder="95"></div>
+        <div><label for="rGas">Gasolina $</label><input type="number" inputmode="numeric" id="rGas" placeholder="41000"></div>
+      </div>
+      <button type="button" class="btn" id="btnGuardar">Guardar jornada</button>
+    </div>
+
+    <div class="card">
+      <div class="eyebrow">Últimas jornadas</div>
+      <div id="listaRegs"><div class="vacio">Aún no hay jornadas.<br>Tu primera se guarda aquí y alimenta todo el tablero.</div></div>
+    </div>
+  </section>
+
+  <!-- ============ VISTA CALCULADORA ============ -->
+  <section id="v-calc" class="vista">
+    <div class="card">
+      <div class="eyebrow">¿Lo tomo? · calculadora de viaje</div>
+      <div class="grid2">
+        <div><label for="cTarifa">Tarifa ofrecida $</label><input type="number" inputmode="numeric" id="cTarifa" placeholder="9500"></div>
+        <div><label for="cKm">Km del viaje</label><input type="number" inputmode="decimal" step="0.5" id="cKm" placeholder="5"></div>
+      </div>
+      <div class="grid2">
+        <div><label for="cRecogida">Min de recogida</label><input type="number" inputmode="numeric" id="cRecogida" placeholder="4"></div>
+        <div><label for="cDur">Min del viaje</label><input type="number" inputmode="numeric" id="cDur" placeholder="15"></div>
+      </div>
+      <button type="button" class="btn" id="btnCalc">Evaluar</button>
+      <div id="resCalc"></div>
+    </div>
+    <div class="card card-reglas">
+      <div class="eyebrow">Tus reglas</div>
+      Tarifa mínima <b id="reglaTarifa" class="fuerte"></b> · ingreso mínimo <b id="reglaKm" class="fuerte"></b>/km total (recogida incluida) · meta <b id="reglaHora" class="fuerte"></b>/hora · recogida máx <b class="fuerte">7 min</b>. El costo de tu carro es ~<b id="reglaCosto" class="fuerte"></b>/km solo en gasolina extra.
+    </div>
+  </section>
+
+  <!-- ============ VISTA TENDENCIAS ============ -->
+  <section id="v-tend" class="vista">
+    <div class="card">
+      <div class="eyebrow">$ / hora por día de la semana</div>
+      <div id="chartDias"><div class="vacio">Registra al menos una jornada para ver tus tendencias.</div></div>
+    </div>
+    <div class="card">
+      <div class="eyebrow">Uber vs DiDi · $ / hora promedio</div>
+      <div id="chartApps"><div class="vacio">Cuando registres jornadas de cada app, aquí las comparamos.</div></div>
+    </div>
+    <div class="card">
+      <div class="eyebrow">Totales del mes</div>
+      <div class="fila-datos mt4">
+        <div class="dato"><div class="v num" id="tMesBruto">$0</div><div class="l">Facturado</div></div>
+        <div class="dato"><div class="v num" id="tMesNeto">$0</div><div class="l">Neto − gasolina</div></div>
+        <div class="dato"><div class="v num" id="tMesHoras">0</div><div class="l">Horas</div></div>
+        <div class="dato"><div class="v num" id="tMesKm">0</div><div class="l">Km</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ VISTA AJUSTES ============ -->
+  <section id="v-conf" class="vista">
+    <div class="card">
+      <div class="eyebrow">Metas y reglas · editables</div>
+      <label for="fMin">Mínimo diario $ (el carro se paga solo)</label>
+      <input type="number" inputmode="numeric" id="fMin">
+      <label for="fMeta">Meta diaria completa $ (todo incluido)</label>
+      <input type="number" inputmode="numeric" id="fMeta">
+      <label for="fHora">Meta $ / hora</label>
+      <input type="number" inputmode="numeric" id="fHora">
+      <label for="fTarifaMin">Tarifa mínima por viaje $</label>
+      <input type="number" inputmode="numeric" id="fTarifaMin">
+      <label for="fKmMin">Ingreso mínimo por km total $</label>
+      <input type="number" inputmode="numeric" id="fKmMin">
+      <label for="fCostoKm">Costo del carro por km $ (gasolina)</label>
+      <input type="number" inputmode="numeric" id="fCostoKm">
+      <label for="fDiaPago">Día de pago cuota Santander</label>
+      <input type="number" inputmode="numeric" id="fDiaPago" min="1" max="28">
+      <button type="button" class="btn" id="btnConf">Guardar ajustes</button>
+    </div>
+    <div class="card">
+      <div class="eyebrow">Datos</div>
+      <button type="button" class="btn sec" id="btnExport">Copiar datos (respaldo CSV)</button>
+      <button type="button" class="btn peligro" id="btnReset">Borrar todas las jornadas</button>
+    </div>
+  </section>
+
+</main>
+
+<div class="toast" id="toast">Guardado ✓</div>
+
+<nav>
+  <button type="button" data-v="v-hoy" class="activa"><span class="ico">🚦</span>Hoy</button>
+  <button type="button" data-v="v-reg"><span class="ico">✍️</span>Registrar</button>
+  <button type="button" data-v="v-calc"><span class="ico">🧮</span>¿Lo tomo?</button>
+  <button type="button" data-v="v-tend"><span class="ico">📈</span>Tendencias</button>
+  <button type="button" data-v="v-conf"><span class="ico">⚙️</span>Ajustes</button>
+</nav>
+
+<script>
+/* ================= ESTADO ================= */
+const DEF_CONF = { min:107000, meta:184000, hora:20000, tarifaMin:7000, kmMin:1500, costoKm:433, diaPago:25 };
+let conf = {...DEF_CONF};
+let entradas = [];   // {id, fecha:'YYYY-MM-DD', app, horas, viajes, bruto, neto, km, gas}
+let appSel = 'Uber';
+
+const $ = id => document.getElementById(id);
+const fmt = n => '$' + Math.round(n||0).toLocaleString('es-CO');
+const hoyISO = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+
+/* ================= CONFIGURACIÓN SUPABASE =================
+   ⬇️ EDITA SOLO ESTAS 2 LÍNEAS con los datos de tu proyecto ⬇️ */
+const SUPABASE_URL = 'https://vfypmrcwfrylbyfpsydj.supabase.co';        // ej: https://abcd1234.supabase.co
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmeXBtcmN3ZnJ5bGJ5ZnBzeWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxOTIxMDUsImV4cCI6MjEwMjc2ODEwNX0.RDRoVuvDIDlS6jI1tI0_sEEo6BeGG1wv1WgmPiwBEWc';      // la "anon public" o "publishable
+/* ⬆️ NADA MÁS SE EDITA ⬆️ ======================================== */
+
+const nube = (SUPABASE_URL.startsWith('https://') && !SUPABASE_URL.includes('PEGA') && window.supabase)
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+function lsGet(k){ try{ return localStorage.getItem('tablero_'+k); }catch(e){ return null; } }
+function lsSet(k,v){ try{ localStorage.setItem('tablero_'+k, v); return true; }catch(e){ return false; } }
+function setNube(ok, err){
+  const el = document.getElementById('nubeEstado'); if(!el) return;
+  el.textContent = ok ? '☁️ sincronizado' : (err ? '⚠️ sin conexión' : '📴 solo local');
+  el.style.color = ok ? 'var(--verde)' : (err ? 'var(--rojo)' : 'var(--tenue)');
+}
+
+async function cargar(){
+  const c = lsGet('conf'); if(c){ try{ conf = {...DEF_CONF, ...JSON.parse(c)}; }catch(e){} }
+  if(nube){
+    try{
+      const {data, error} = await nube.from('jornadas').select('*').order('fecha', {ascending:false});
+      if(error) throw error;
+      entradas = data.map(d=>({id:d.id, fecha:d.fecha, app:d.app, horas:+d.horas||0, viajes:d.viajes||0, bruto:d.bruto||0, neto:d.neto||0, km:+d.km||0, gas:d.gas||0}));
+      lsSet('entradas', JSON.stringify(entradas));
+      setNube(true);
+      return;
+    }catch(e){ setNube(false, true); }
+  } else { setNube(false); }
+  const en = lsGet('entradas'); if(en){ try{ entradas = JSON.parse(en); }catch(e){} }
+}
+async function guardarConf(){ if(!lsSet('conf', JSON.stringify(conf))) toast('No se pudo guardar', true); }
+
+async function insertarJornada(e){
+  if(nube){
+    const {data, error} = await nube.from('jornadas')
+      .insert({fecha:e.fecha, app:e.app, horas:e.horas, viajes:e.viajes, bruto:e.bruto, neto:e.neto, km:e.km, gas:e.gas})
+      .select().single();
+    if(error){ toast('Sin conexión: intenta de nuevo', true); return null; }
+    e.id = data.id;
+  }
+  entradas.push(e);
+  entradas.sort((a,b)=> a.fecha < b.fecha ? 1 : -1);
+  lsSet('entradas', JSON.stringify(entradas));
+  return e;
+}
+async function eliminarJornada(id){
+  if(nube){
+    const {error} = await nube.from('jornadas').delete().eq('id', id);
+    if(error){ toast('Sin conexión: intenta de nuevo', true); return false; }
+  }
+  entradas = entradas.filter(x=>x.id != id);
+  lsSet('entradas', JSON.stringify(entradas));
+  return true;
+}
+async function vaciarJornadas(){
+  if(nube){
+    const {error} = await nube.from('jornadas').delete().gt('id', 0);
+    if(error){ toast('Sin conexión: intenta de nuevo', true); return false; }
+  }
+  entradas = []; lsSet('entradas', '[]');
+  return true;
+}
+
+/* ================= NAV ================= */
+document.querySelectorAll('nav button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('nav button').forEach(x=>x.classList.remove('activa'));
+    document.querySelectorAll('.vista').forEach(x=>x.classList.remove('activa'));
+    b.classList.add('activa');
+    $(b.dataset.v).classList.add('activa');
+    if(b.dataset.v==='v-tend') pintarTendencias();
+    if(b.dataset.v==='v-hoy') pintarHoy();
+  });
+});
+
+/* ================= REGISTRAR ================= */
+['appUber','appDidi','appAmbas'].forEach(id=>{
+  $(id).addEventListener('click', ()=>{
+    ['appUber','appDidi','appAmbas'].forEach(x=>$(x).classList.remove('sel'));
+    $(id).classList.add('sel');
+    appSel = id==='appUber'?'Uber': id==='appDidi'?'DiDi':'Ambas';
+  });
+});
+
+$('btnGuardar').addEventListener('click', async ()=>{
+  const e = {
+    id: Date.now(),
+    fecha: $('rFecha').value || hoyISO(),
+    app: appSel,
+    horas: parseFloat($('rHoras').value)||0,
+    viajes: parseInt($('rViajes').value)||0,
+    bruto: parseInt($('rBruto').value)||0,
+    neto: parseInt($('rNeto').value)||0,
+    km: parseFloat($('rKm').value)||0,
+    gas: parseInt($('rGas').value)||0
+  };
+  if(!e.bruto && !e.horas){ toast('Ingresa al menos horas y facturado', true); return; }
+  const g = await insertarJornada(e);
+  if(!g) return;
+  ['rHoras','rViajes','rBruto','rNeto','rKm','rGas'].forEach(id=>$(id).value='');
+  toast('Jornada guardada ✓');
+  pintarRegs(); pintarHoy();
+});
+
+function pintarRegs(){
+  const cont = $('listaRegs');
+  if(!entradas.length){ cont.innerHTML = '<div class="vacio">Aún no hay jornadas.<br>Tu primera se guarda aquí y alimenta todo el tablero.</div>'; return; }
+  cont.innerHTML = entradas.slice(0,15).map(e=>{
+    const ph = e.horas>0 ? fmt(e.bruto/e.horas)+'/h' : '';
+    return `<div class="reg">
+      <div class="izq"><div class="f num">${e.fecha}<span class="badge">${e.app}</span></div>
+      <div class="d num">${e.horas}h · ${e.viajes} viajes · ${e.km} km</div></div>
+      <div class="der"><div class="m num">${fmt(e.bruto)}</div><div class="h num">${ph}</div></div>
+      <button type="button" class="borrar" aria-label="Borrar jornada" data-id="${e.id}">✕</button>
+    </div>`;
+  }).join('');
+  cont.querySelectorAll('.borrar').forEach(b=>{
+    b.addEventListener('click', async ()=>{
+      if(!(await eliminarJornada(b.dataset.id))) return;
+      pintarRegs(); pintarHoy();
+      toast('Jornada borrada');
+    });
+  });
+}
+
+/* ================= HOY ================= */
+function lunesDe(fechaISO){
+  const d = new Date(fechaISO+'T12:00:00');
+  const dia = (d.getDay()+6)%7; // lun=0
+  d.setDate(d.getDate()-dia);
+  return d.toISOString().slice(0,10);
+}
+function pintarHoy(){
+  const hoy = hoyISO();
+  const deHoy = entradas.filter(e=>e.fecha===hoy);
+  const bHoy = deHoy.reduce((s,e)=>s+e.bruto,0);
+  const hHoy = deHoy.reduce((s,e)=>s+e.horas,0);
+  const vHoy = deHoy.reduce((s,e)=>s+e.viajes,0);
+
+  $('odoHoy').textContent = fmt(bHoy);
+  $('horaHoy').textContent = hHoy>0 ? fmt(bHoy/hHoy) : '—';
+  $('viajesHoy').textContent = deHoy.length ? vHoy : '—';
+
+  // Semáforo
+  ['lz-r','lz-a','lz-v'].forEach(id=>$(id).className='luz');
+  let estado='Sin registros hoy';
+  if(deHoy.length){
+    if(bHoy >= conf.meta){ $('lz-v').classList.add('on-v'); estado='🟢 ¡Meta completa lograda!'; }
+    else if(bHoy >= conf.min){ $('lz-a').classList.add('on-a'); estado='🟡 El carro ya se pagó · vas por la meta'; }
+    else { $('lz-r').classList.add('on-r'); estado='🔴 Bajo el mínimo · faltan '+fmt(conf.min-bHoy); }
+  }
+  $('estadoTxt').textContent = estado;
+
+  // Gauge hoy (escala hasta 120% de meta)
+  const esc = conf.meta*1.2;
+  $('gaugeHoy').style.width = Math.min(100, bHoy/esc*100)+'%';
+  $('tickMin').style.left = (conf.min/esc*100)+'%';
+  $('tickMeta').style.left = (conf.meta/esc*100)+'%';
+  $('tickMinL').style.left = (conf.min/esc*100)+'%'; $('tickMinL').textContent='mín '+fmt(conf.min);
+  $('tickMetaL').style.left = (conf.meta/esc*100)+'%'; $('tickMetaL').textContent='meta '+fmt(conf.meta);
+
+  // Semana
+  const lun = lunesDe(hoy);
+  const sem = entradas.filter(e=>e.fecha>=lun && e.fecha<=hoy);
+  const bSem = sem.reduce((s,e)=>s+e.bruto,0);
+  const gSem = sem.reduce((s,e)=>s+e.gas,0);
+  const nSem = sem.reduce((s,e)=>s+e.neto,0) - gSem;
+  $('odoSemana').textContent = fmt(bSem);
+  $('gasSemana').textContent = fmt(gSem);
+  $('netoSemana').textContent = fmt(nSem);
+  const semMin = conf.min*6, semMeta = conf.meta*6, escS = semMeta*1.15;
+  $('gaugeSem').style.width = Math.min(100, bSem/escS*100)+'%';
+  $('tickSemMin').style.left = (semMin/escS*100)+'%';
+  $('tickSemMeta').style.left = (semMeta/escS*100)+'%';
+  $('tickSemMinL').style.left = (semMin/escS*100)+'%'; $('tickSemMinL').textContent='mín '+fmt(semMin);
+  $('tickSemMetaL').style.left = (semMeta/escS*100)+'%'; $('tickSemMetaL').textContent='meta '+fmt(semMeta);
+
+  // Mes → cuota
+  const d = new Date();
+  const mesIni = hoy.slice(0,8)+'01';
+  const mes = entradas.filter(e=>e.fecha>=mesIni);
+  const bMes = mes.reduce((s,e)=>s+e.bruto,0);
+  $('odoMes').textContent = fmt(bMes);
+  let pago = new Date(d.getFullYear(), d.getMonth(), conf.diaPago);
+  if(d.getDate() > conf.diaPago) pago = new Date(d.getFullYear(), d.getMonth()+1, conf.diaPago);
+  const faltan = Math.ceil((pago - d)/(1000*60*60*24));
+  $('diasFaltan').textContent = faltan;
+  $('diaPagoLbl').textContent = conf.diaPago;
+  const cuotaAprox = 1115705;
+  $('msgCuota').textContent = bMes >= cuotaAprox
+    ? 'Ya facturaste el equivalente de la cuota Santander (~'+fmt(cuotaAprox)+'). Todo lo que sigue construye el resto del mes.'
+    : 'Te faltan ~'+fmt(cuotaAprox-bMes)+' facturados para cubrir la cuota Santander (~'+fmt(cuotaAprox)+'). Recuerda: saldo en Banco de Bogotá antes del día '+conf.diaPago+'.';
+}
+
+/* ================= CALCULADORA ================= */
+$('btnCalc').addEventListener('click', ()=>{
+  const t = parseInt($('cTarifa').value)||0;
+  const km = parseFloat($('cKm').value)||0;
+  const rec = parseInt($('cRecogida').value)||0;
+  const dur = parseInt($('cDur').value)||0;
+  if(!t || !km){ $('resCalc').innerHTML=''; toast('Ingresa tarifa y km', true); return; }
+
+  const kmRec = rec*0.4;               // aprox 0.4 km por minuto de recogida urbana
+  const kmTot = km + kmRec;
+  const minTot = dur + rec || 1;
+  const pKm = t/kmTot;
+  const pHora = t/(minTot/60);
+  const gasto = kmTot*conf.costoKm;
+  const netoAprox = t*0.75 - gasto;    // aprox post comisión 25%
+
+  const checks = [
+    {ok: t>=conf.tarifaMin, txt:`Tarifa ${fmt(t)} — mínimo ${fmt(conf.tarifaMin)}`},
+    {ok: pKm>=conf.kmMin, txt:`<b>${fmt(pKm)}/km</b> total (${kmTot.toFixed(1)} km con recogida) — mínimo ${fmt(conf.kmMin)}`},
+    {ok: pHora>=conf.hora, txt:`<b>${fmt(pHora)}/hora</b> proyectado — meta ${fmt(conf.hora)}`},
+    {ok: rec<=7, txt:`Recogida ${rec} min — máximo 7`}
+  ];
+  const oks = checks.filter(c=>c.ok).length;
+  let clase, titulo;
+  if(oks===4){ clase='tomalo'; titulo='TÓMALO ✓'; }
+  else if(oks>=2){ clase='dudoso'; titulo='DEPENDE'; }
+  else { clase='dejalo'; titulo='DÉJALO ✕'; }
+
+  $('resCalc').innerHTML = `<div class="veredicto ${clase}">
+    <div class="titulo">${titulo}</div>
+    <div class="veredicto-sub num">neto aprox ${fmt(netoAprox)} después de comisión y gasolina</div>
+    <ul>${checks.map(c=>`<li>${c.ok?'✅':'❌'} ${c.txt}</li>`).join('')}</ul>
+    ${clase==='dudoso' ? '<div class="veredicto-nota">Vale si te deja en zona con demanda o suma a un reto activo. Si no, espera el siguiente.</div>':''}
+  </div>`;
+});
+
+/* ================= TENDENCIAS ================= */
+function pintarTendencias(){
+  const DIAS = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+  // $/hora por día de semana
+  const acc = Array.from({length:7}, ()=>({b:0,h:0}));
+  entradas.forEach(e=>{
+    const d = new Date(e.fecha+'T12:00:00');
+    const i = (d.getDay()+6)%7;
+    acc[i].b += e.bruto; acc[i].h += e.horas;
+  });
+  const vals = acc.map(a=> a.h>0 ? a.b/a.h : 0);
+  const max = Math.max(...vals, conf.hora);
+  if(entradas.length){
+    $('chartDias').innerHTML = DIAS.map((d,i)=>{
+      const v = vals[i];
+      const pct = max>0 ? v/max*100 : 0;
+      const cls = v>=conf.hora ? 'barra v' : 'barra';
+      return `<div class="barra-fila"><div class="lbl">${d}</div>
+        <div class="barra-pista"><div class="${cls}" style="width:${pct}%"></div></div>
+        <div class="val num">${v>0?fmt(v):'—'}</div></div>`;
+    }).join('') + `<div class="nota-tendencia">Verde = alcanza tu meta de ${fmt(conf.hora)}/hora.</div>`;
+  }
+  // Apps
+  const apps = {};
+  entradas.forEach(e=>{
+    if(!apps[e.app]) apps[e.app]={b:0,h:0};
+    apps[e.app].b+=e.bruto; apps[e.app].h+=e.horas;
+  });
+  const claves = Object.keys(apps).filter(k=>apps[k].h>0);
+  if(claves.length){
+    const maxA = Math.max(...claves.map(k=>apps[k].b/apps[k].h));
+    $('chartApps').innerHTML = claves.map(k=>{
+      const v = apps[k].b/apps[k].h;
+      return `<div class="barra-fila"><div class="lbl lbl-ancho">${k}</div>
+        <div class="barra-pista"><div class="barra" style="width:${v/maxA*100}%"></div></div>
+        <div class="val num">${fmt(v)}</div></div>`;
+    }).join('');
+  }
+  // Totales del mes
+  const mesIni = hoyISO().slice(0,8)+'01';
+  const mes = entradas.filter(e=>e.fecha>=mesIni);
+  $('tMesBruto').textContent = fmt(mes.reduce((s,e)=>s+e.bruto,0));
+  $('tMesNeto').textContent = fmt(mes.reduce((s,e)=>s+e.neto,0) - mes.reduce((s,e)=>s+e.gas,0));
+  $('tMesHoras').textContent = mes.reduce((s,e)=>s+e.horas,0).toFixed(1);
+  $('tMesKm').textContent = Math.round(mes.reduce((s,e)=>s+e.km,0)).toLocaleString('es-CO');
+}
+
+/* ================= AJUSTES ================= */
+function pintarConf(){
+  $('fMin').value=conf.min; $('fMeta').value=conf.meta; $('fHora').value=conf.hora;
+  $('fTarifaMin').value=conf.tarifaMin; $('fKmMin').value=conf.kmMin;
+  $('fCostoKm').value=conf.costoKm; $('fDiaPago').value=conf.diaPago;
+  $('reglaTarifa').textContent=fmt(conf.tarifaMin);
+  $('reglaKm').textContent=fmt(conf.kmMin);
+  $('reglaHora').textContent=fmt(conf.hora);
+  $('reglaCosto').textContent=fmt(conf.costoKm);
+}
+$('btnConf').addEventListener('click', async ()=>{
+  conf.min=parseInt($('fMin').value)||DEF_CONF.min;
+  conf.meta=parseInt($('fMeta').value)||DEF_CONF.meta;
+  conf.hora=parseInt($('fHora').value)||DEF_CONF.hora;
+  conf.tarifaMin=parseInt($('fTarifaMin').value)||DEF_CONF.tarifaMin;
+  conf.kmMin=parseInt($('fKmMin').value)||DEF_CONF.kmMin;
+  conf.costoKm=parseInt($('fCostoKm').value)||DEF_CONF.costoKm;
+  conf.diaPago=parseInt($('fDiaPago').value)||DEF_CONF.diaPago;
+  await guardarConf();
+  pintarConf(); pintarHoy();
+  toast('Ajustes guardados ✓');
+});
+$('btnExport').addEventListener('click', ()=>{
+  const csv = ['fecha,app,horas,viajes,bruto,neto,km,gasolina',
+    ...entradas.map(e=>[e.fecha,e.app,e.horas,e.viajes,e.bruto,e.neto,e.km,e.gas].join(','))].join('\n');
+  navigator.clipboard.writeText(csv).then(()=>toast('CSV copiado ✓')).catch(()=>toast('No se pudo copiar', true));
+});
+$('btnReset').addEventListener('click', async ()=>{
+  if(!confirm('¿Borrar TODAS las jornadas? Esta acción no se puede deshacer.')) return;
+  if(!(await vaciarJornadas())) return;
+  pintarRegs(); pintarHoy(); pintarTendencias();
+  toast('Jornadas borradas');
+});
+
+/* ================= UTIL ================= */
+let toastT;
+function toast(msg, err){
+  const t=$('toast'); t.textContent=msg;
+  t.style.background = err ? 'var(--rojo)' : 'var(--verde)';
+  t.style.color = err ? '#fff' : '#101318';
+  t.classList.add('ver');
+  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('ver'), 2200);
+}
+
+/* ================= INIT ================= */
+(async function(){
+  const d = new Date();
+  $('fechaHoy').textContent = d.toLocaleDateString('es-CO',{weekday:'short', day:'numeric', month:'short'});
+  $('rFecha').value = hoyISO();
+  await cargar();
+  pintarConf(); pintarRegs(); pintarHoy(); pintarTendencias();
+})();
+</script>
+</body>
+</html>
