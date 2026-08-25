@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Tablero · Dani</title>
+<title>Rutia · Driver Track</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..900&family=Archivo+Black&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -55,7 +55,7 @@
   .odometro small{font-size:1.1rem; color:var(--tenue); font-family:'Archivo';}
 
   .gauge{position:relative; height:18px; background:var(--panel2); border:1px solid var(--linea); border-radius:9px; margin:14px 0 4px; overflow:visible;}
-  .gauge-fill{position:absolute; left:0; top:0; bottom:0; border-radius:9px; background:linear-gradient(90deg, var(--rojo), var(--ambar) 55%, var(--verde)); transition:width .5s ease; max-width:100%;}
+  .gauge-fill{position:absolute; left:0; top:0; bottom:0; width:0; border-radius:9px; background:linear-gradient(90deg, var(--rojo), var(--ambar) 55%, var(--verde)); transition:width .5s ease; max-width:100%;}
   .tick{position:absolute; top:-5px; bottom:-5px; width:2px; background:var(--texto); opacity:.7;}
   .tick-label{position:absolute; top:22px; font-size:0.62rem; color:var(--tenue); transform:translateX(-50%); white-space:nowrap;}
   .gauge-wrap{padding-bottom:22px;}
@@ -101,6 +101,22 @@
   .reg .der .h{font-size:0.72rem; color:var(--tenue);}
   .reg .borrar{background:none; border:none; color:var(--tenue); font-size:1.1rem; cursor:pointer; padding:6px;}
   .badge{display:inline-block; font-size:0.6rem; padding:2px 7px; border-radius:20px; border:1px solid var(--linea); color:var(--tenue); margin-left:6px; vertical-align:middle;}
+
+  /* ===== Utilidades de layout/tipografía (evitan estilos inline) ===== */
+  .txt-der{text-align:right;}
+  .mt4{margin-top:4px;}
+  .fw800{font-weight:800;}
+  .fuerte{color:var(--texto);}
+  .fila-cuota{display:flex; justify-content:space-between; align-items:baseline;}
+  .odometro.sm{font-size:1.7rem;}
+  .etiqueta-dias{font-size:0.68rem; color:var(--tenue); text-transform:uppercase;}
+  #nubeEstado{font-size:0.65rem;}
+  #msgCuota{font-size:0.8rem; color:var(--tenue); margin-top:8px;}
+  .card-reglas{font-size:0.78rem; color:var(--tenue); line-height:1.55;}
+  .veredicto-sub{font-size:0.85rem; color:var(--tenue); margin-top:2px;}
+  .veredicto-nota{font-size:0.78rem; margin-top:8px; color:var(--tenue);}
+  .nota-tendencia{font-size:0.7rem; color:var(--tenue); margin-top:8px;}
+  .lbl-ancho{width:52px;}
 
   /* ===== Veredicto calculadora ===== */
   .veredicto{border-radius:var(--radius); padding:18px; text-align:center; margin-top:16px; border:1px solid var(--linea);}
@@ -150,8 +166,8 @@
 <body>
 
 <header>
-  <h1>Tablero <span>·</span> Dani</h1>
-  <div style="text-align:right;"><div id="fechaHoy" class="num"></div><div id="nubeEstado" style="font-size:0.65rem;">…</div></div>
+  <h1>Rutia <span>·</span> Driver Track</h1>
+  <div class="txt-der"><div id="fechaHoy" class="num"></div><div id="nubeEstado">…</div></div>
 </header>
 
 <main>
@@ -169,7 +185,7 @@
       <div class="odometro num" id="odoHoy">$0</div>
       <div class="gauge-wrap">
         <div class="gauge">
-          <div class="gauge-fill" id="gaugeHoy" style="width:0%"></div>
+          <div class="gauge-fill" id="gaugeHoy"></div>
           <div class="tick" id="tickMin"></div>
           <div class="tick" id="tickMeta"></div>
           <div class="tick-label" id="tickMinL">mín</div>
@@ -184,10 +200,10 @@
 
     <div class="card">
       <div class="eyebrow">Esta semana (lun–dom)</div>
-      <div class="odometro num" style="font-size:1.7rem;" id="odoSemana">$0</div>
+      <div class="odometro num sm" id="odoSemana">$0</div>
       <div class="gauge-wrap">
         <div class="gauge">
-          <div class="gauge-fill" id="gaugeSem" style="width:0%"></div>
+          <div class="gauge-fill" id="gaugeSem"></div>
           <div class="tick" id="tickSemMin"></div>
           <div class="tick" id="tickSemMeta"></div>
           <div class="tick-label" id="tickSemMinL">mín</div>
@@ -202,14 +218,14 @@
 
     <div class="card">
       <div class="eyebrow">Rumbo a la cuota del <span id="diaPagoLbl">25</span></div>
-      <div style="display:flex; justify-content:space-between; align-items:baseline;">
-        <div class="odometro num" style="font-size:1.7rem;" id="odoMes">$0</div>
-        <div style="text-align:right;">
-          <div class="v num" style="font-weight:800;" id="diasFaltan">—</div>
-          <div style="font-size:0.68rem; color:var(--tenue); text-transform:uppercase;">días para el pago</div>
+      <div class="fila-cuota">
+        <div class="odometro num sm" id="odoMes">$0</div>
+        <div class="txt-der">
+          <div class="v num fw800" id="diasFaltan">—</div>
+          <div class="etiqueta-dias">días para el pago</div>
         </div>
       </div>
-      <div style="font-size:0.8rem; color:var(--tenue); margin-top:8px;" id="msgCuota"></div>
+      <div id="msgCuota"></div>
     </div>
   </section>
 
@@ -237,7 +253,7 @@
         <div><label for="rKm">Km del día</label><input type="number" inputmode="numeric" id="rKm" placeholder="95"></div>
         <div><label for="rGas">Gasolina $</label><input type="number" inputmode="numeric" id="rGas" placeholder="41000"></div>
       </div>
-      <button class="btn" id="btnGuardar">Guardar jornada</button>
+      <button type="button" class="btn" id="btnGuardar">Guardar jornada</button>
     </div>
 
     <div class="card">
@@ -258,12 +274,12 @@
         <div><label for="cRecogida">Min de recogida</label><input type="number" inputmode="numeric" id="cRecogida" placeholder="4"></div>
         <div><label for="cDur">Min del viaje</label><input type="number" inputmode="numeric" id="cDur" placeholder="15"></div>
       </div>
-      <button class="btn" id="btnCalc">Evaluar</button>
+      <button type="button" class="btn" id="btnCalc">Evaluar</button>
       <div id="resCalc"></div>
     </div>
-    <div class="card" style="font-size:0.78rem; color:var(--tenue); line-height:1.55;">
+    <div class="card card-reglas">
       <div class="eyebrow">Tus reglas</div>
-      Tarifa mínima <b id="reglaTarifa" style="color:var(--texto)"></b> · ingreso mínimo <b id="reglaKm" style="color:var(--texto)"></b>/km total (recogida incluida) · meta <b id="reglaHora" style="color:var(--texto)"></b>/hora · recogida máx <b style="color:var(--texto)">7 min</b>. El costo de tu carro es ~<b id="reglaCosto" style="color:var(--texto)"></b>/km solo en gasolina extra.
+      Tarifa mínima <b id="reglaTarifa" class="fuerte"></b> · ingreso mínimo <b id="reglaKm" class="fuerte"></b>/km total (recogida incluida) · meta <b id="reglaHora" class="fuerte"></b>/hora · recogida máx <b class="fuerte">7 min</b>. El costo de tu carro es ~<b id="reglaCosto" class="fuerte"></b>/km solo en gasolina extra.
     </div>
   </section>
 
@@ -279,7 +295,7 @@
     </div>
     <div class="card">
       <div class="eyebrow">Totales del mes</div>
-      <div class="fila-datos" style="margin-top:4px;">
+      <div class="fila-datos mt4">
         <div class="dato"><div class="v num" id="tMesBruto">$0</div><div class="l">Facturado</div></div>
         <div class="dato"><div class="v num" id="tMesNeto">$0</div><div class="l">Neto − gasolina</div></div>
         <div class="dato"><div class="v num" id="tMesHoras">0</div><div class="l">Horas</div></div>
@@ -306,12 +322,12 @@
       <input type="number" inputmode="numeric" id="fCostoKm">
       <label for="fDiaPago">Día de pago cuota Santander</label>
       <input type="number" inputmode="numeric" id="fDiaPago" min="1" max="28">
-      <button class="btn" id="btnConf">Guardar ajustes</button>
+      <button type="button" class="btn" id="btnConf">Guardar ajustes</button>
     </div>
     <div class="card">
       <div class="eyebrow">Datos</div>
-      <button class="btn sec" id="btnExport">Copiar datos (respaldo CSV)</button>
-      <button class="btn peligro" id="btnReset">Borrar todas las jornadas</button>
+      <button type="button" class="btn sec" id="btnExport">Copiar datos (respaldo CSV)</button>
+      <button type="button" class="btn peligro" id="btnReset">Borrar todas las jornadas</button>
     </div>
   </section>
 
@@ -320,11 +336,11 @@
 <div class="toast" id="toast">Guardado ✓</div>
 
 <nav>
-  <button data-v="v-hoy" class="activa"><span class="ico">🚦</span>Hoy</button>
-  <button data-v="v-reg"><span class="ico">✍️</span>Registrar</button>
-  <button data-v="v-calc"><span class="ico">🧮</span>¿Lo tomo?</button>
-  <button data-v="v-tend"><span class="ico">📈</span>Tendencias</button>
-  <button data-v="v-conf"><span class="ico">⚙️</span>Ajustes</button>
+  <button type="button" data-v="v-hoy" class="activa"><span class="ico">🚦</span>Hoy</button>
+  <button type="button" data-v="v-reg"><span class="ico">✍️</span>Registrar</button>
+  <button type="button" data-v="v-calc"><span class="ico">🧮</span>¿Lo tomo?</button>
+  <button type="button" data-v="v-tend"><span class="ico">📈</span>Tendencias</button>
+  <button type="button" data-v="v-conf"><span class="ico">⚙️</span>Ajustes</button>
 </nav>
 
 <script>
@@ -341,7 +357,7 @@ const hoyISO = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.g
 /* ================= CONFIGURACIÓN SUPABASE =================
    ⬇️ EDITA SOLO ESTAS 2 LÍNEAS con los datos de tu proyecto ⬇️ */
 const SUPABASE_URL = 'https://vfypmrcwfrylbyfpsydj.supabase.co';        // ej: https://abcd1234.supabase.co
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmeXBtcmN3ZnJ5bGJ5ZnBzeWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxOTIxMDUsImV4cCI6MjEwMjc2ODEwNX0.RDRoVuvDIDlS6jI1tI0_sEEo6BeGG1wv1WgmPiwBEWc';      // la "anon public" o "publishable"
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmeXBtcmN3ZnJ5bGJ5ZnBzeWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxOTIxMDUsImV4cCI6MjEwMjc2ODEwNX0.RDRoVuvDIDlS6jI1tI0_sEEo6BeGG1wv1WgmPiwBEWc';      // la "anon public" o "publishable
 /* ⬆️ NADA MÁS SE EDITA ⬆️ ======================================== */
 
 const nube = (SUPABASE_URL.startsWith('https://') && !SUPABASE_URL.includes('PEGA') && window.supabase)
@@ -452,7 +468,7 @@ function pintarRegs(){
       <div class="izq"><div class="f num">${e.fecha}<span class="badge">${e.app}</span></div>
       <div class="d num">${e.horas}h · ${e.viajes} viajes · ${e.km} km</div></div>
       <div class="der"><div class="m num">${fmt(e.bruto)}</div><div class="h num">${ph}</div></div>
-      <button class="borrar" aria-label="Borrar jornada" data-id="${e.id}">✕</button>
+      <button type="button" class="borrar" aria-label="Borrar jornada" data-id="${e.id}">✕</button>
     </div>`;
   }).join('');
   cont.querySelectorAll('.borrar').forEach(b=>{
@@ -563,9 +579,9 @@ $('btnCalc').addEventListener('click', ()=>{
 
   $('resCalc').innerHTML = `<div class="veredicto ${clase}">
     <div class="titulo">${titulo}</div>
-    <div style="font-size:0.85rem; color:var(--tenue); margin-top:2px;" class="num">neto aprox ${fmt(netoAprox)} después de comisión y gasolina</div>
+    <div class="veredicto-sub num">neto aprox ${fmt(netoAprox)} después de comisión y gasolina</div>
     <ul>${checks.map(c=>`<li>${c.ok?'✅':'❌'} ${c.txt}</li>`).join('')}</ul>
-    ${clase==='dudoso' ? '<div style="font-size:0.78rem; margin-top:8px; color:var(--tenue);">Vale si te deja en zona con demanda o suma a un reto activo. Si no, espera el siguiente.</div>':''}
+    ${clase==='dudoso' ? '<div class="veredicto-nota">Vale si te deja en zona con demanda o suma a un reto activo. Si no, espera el siguiente.</div>':''}
   </div>`;
 });
 
@@ -589,7 +605,7 @@ function pintarTendencias(){
       return `<div class="barra-fila"><div class="lbl">${d}</div>
         <div class="barra-pista"><div class="${cls}" style="width:${pct}%"></div></div>
         <div class="val num">${v>0?fmt(v):'—'}</div></div>`;
-    }).join('') + `<div style="font-size:0.7rem; color:var(--tenue); margin-top:8px;">Verde = alcanza tu meta de ${fmt(conf.hora)}/hora.</div>`;
+    }).join('') + `<div class="nota-tendencia">Verde = alcanza tu meta de ${fmt(conf.hora)}/hora.</div>`;
   }
   // Apps
   const apps = {};
@@ -602,7 +618,7 @@ function pintarTendencias(){
     const maxA = Math.max(...claves.map(k=>apps[k].b/apps[k].h));
     $('chartApps').innerHTML = claves.map(k=>{
       const v = apps[k].b/apps[k].h;
-      return `<div class="barra-fila"><div class="lbl" style="width:52px;">${k}</div>
+      return `<div class="barra-fila"><div class="lbl lbl-ancho">${k}</div>
         <div class="barra-pista"><div class="barra" style="width:${v/maxA*100}%"></div></div>
         <div class="val num">${fmt(v)}</div></div>`;
     }).join('');
