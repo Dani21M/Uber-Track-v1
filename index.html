@@ -5,31 +5,31 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Rutia · Driver Track</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..900&family=Archivo+Black&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
-    --asfalto:#101318; --panel:#1A1F27; --panel2:#151A21; --linea:#2A313C;
-    --texto:#E8ECF1; --tenue:#8B95A3;
-    --ambar:#FFB020; --verde:#3DDC84; --rojo:#FF4D5E;
+    --asfalto:#313031; --panel:#3D3B3D; --panel2:#383638; --linea:#4C494C;
+    --texto:#E8ECF1; --tenue:#A7A2A6;
+    --ambar:#FFB020; --verde:#289866; --rojo:#FF4D5E;
     --radius:14px;
   }
   *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
   html{font-size:16px;}
   body{
     background:var(--asfalto); color:var(--texto);
-    font-family:'Archivo', -apple-system, 'Segoe UI', Roboto, sans-serif;
-    font-variation-settings:'wdth' 88;
+    font-family:'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif;
+    
     min-height:100vh; padding-bottom:84px;
   }
   .num{font-variant-numeric:tabular-nums; letter-spacing:-0.01em;}
-  h1,h2,.display{font-family:'Archivo Black','Archivo', sans-serif; font-weight:900;}
+  h1,h2,.display{font-family:'Inter', sans-serif; font-weight:700;}
 
   header{
     padding:18px 18px 10px; display:flex; align-items:baseline; justify-content:space-between;
     border-bottom:1px solid var(--linea);
   }
-  header h1{font-size:1.05rem; letter-spacing:0.06em; text-transform:uppercase;}
+  header h1{font-size:1.05rem; letter-spacing:0.01em;}
   header h1 span{color:var(--ambar);}
   #fechaHoy{color:var(--tenue); font-size:0.8rem;}
 
@@ -45,14 +45,14 @@
   /* ===== Semáforo + odómetro ===== */
   .semaforo{display:flex; align-items:center; gap:10px; margin-bottom:12px;}
   .luces{display:flex; gap:6px;}
-  .luz{width:14px; height:14px; border-radius:50%; background:#2A313C; transition:all .3s;}
+  .luz{width:14px; height:14px; border-radius:50%; background:var(--linea); transition:all .3s;}
   .luz.on-r{background:var(--rojo); box-shadow:0 0 12px var(--rojo);}
   .luz.on-a{background:var(--ambar); box-shadow:0 0 12px var(--ambar);}
   .luz.on-v{background:var(--verde); box-shadow:0 0 12px var(--verde);}
   .estado-txt{font-weight:700; font-size:0.85rem;}
 
-  .odometro{font-family:'Archivo Black'; font-size:2.6rem; line-height:1; margin:4px 0 2px;}
-  .odometro small{font-size:1.1rem; color:var(--tenue); font-family:'Archivo';}
+  .odometro{font-family:'Inter'; font-weight:700; font-size:2.6rem; line-height:1; margin:4px 0 2px;}
+  .odometro small{font-size:1.1rem; color:var(--tenue); font-family:'Inter'; font-weight:400;}
 
   .gauge{position:relative; height:18px; background:var(--panel2); border:1px solid var(--linea); border-radius:9px; margin:14px 0 4px; overflow:visible;}
   .gauge-fill{position:absolute; left:0; top:0; bottom:0; width:0; border-radius:9px; background:linear-gradient(90deg, var(--rojo), var(--ambar) 55%, var(--verde)); transition:width .5s ease; max-width:100%;}
@@ -66,7 +66,7 @@
   .dato .l{font-size:0.68rem; color:var(--tenue); text-transform:uppercase; letter-spacing:0.08em;}
 
   /* ===== Formularios ===== */
-  label{display:block; font-size:0.72rem; color:var(--tenue); text-transform:uppercase; letter-spacing:0.1em; margin:12px 0 5px;}
+  label{display:block; font-size:0.72rem; color:var(--tenue); letter-spacing:0.02em; margin:12px 0 5px;}
   input, select{
     width:100%; padding:13px 14px; font-size:1.05rem; color:var(--texto);
     background:var(--panel2); border:1px solid var(--linea); border-radius:10px;
@@ -80,15 +80,15 @@
     flex:1; padding:12px; border-radius:10px; border:1px solid var(--linea);
     background:var(--panel2); color:var(--tenue); font-weight:700; font-size:0.95rem; cursor:pointer;
   }
-  .toggle-app button.sel{background:var(--ambar); color:#101318; border-color:var(--ambar);}
+  .toggle-app button.sel{background:var(--ambar); color:var(--asfalto); border-color:var(--ambar);}
 
   .btn{
     width:100%; padding:15px; margin-top:18px; border:none; border-radius:12px;
-    background:var(--ambar); color:#101318; font-family:'Archivo Black'; font-size:1rem;
-    letter-spacing:0.04em; cursor:pointer; text-transform:uppercase;
+    background:var(--ambar); color:var(--asfalto); font-family:'Inter'; font-weight:700; font-size:1rem;
+    letter-spacing:0.01em; cursor:pointer;
   }
   .btn:active{transform:scale(.98);}
-  .btn.sec{background:transparent; border:1px solid var(--linea); color:var(--tenue); font-family:'Archivo'; font-weight:700; text-transform:none; padding:11px;}
+  .btn.sec{background:transparent; border:1px solid var(--linea); color:var(--tenue); font-family:'Inter'; font-weight:500; text-transform:none; padding:11px;}
   .btn.peligro{background:transparent; border:1px solid var(--rojo); color:var(--rojo);}
 
   /* ===== Registros lista ===== */
@@ -120,10 +120,10 @@
 
   /* ===== Veredicto calculadora ===== */
   .veredicto{border-radius:var(--radius); padding:18px; text-align:center; margin-top:16px; border:1px solid var(--linea);}
-  .veredicto.tomalo{background:rgba(61,220,132,.08); border-color:var(--verde);}
+  .veredicto.tomalo{background:rgba(40,152,102,.08); border-color:var(--verde);}
   .veredicto.dejalo{background:rgba(255,77,94,.08); border-color:var(--rojo);}
   .veredicto.dudoso{background:rgba(255,176,32,.08); border-color:var(--ambar);}
-  .veredicto .titulo{font-family:'Archivo Black'; font-size:1.5rem;}
+  .veredicto .titulo{font-family:'Inter'; font-weight:700; font-size:1.5rem;}
   .veredicto.tomalo .titulo{color:var(--verde);}
   .veredicto.dejalo .titulo{color:var(--rojo);}
   .veredicto.dudoso .titulo{color:var(--ambar);}
@@ -142,7 +142,7 @@
   .vacio{text-align:center; color:var(--tenue); padding:26px 10px; font-size:0.88rem; line-height:1.5;}
   .toast{
     position:fixed; bottom:96px; left:50%; transform:translateX(-50%);
-    background:var(--verde); color:#101318; font-weight:800; padding:11px 22px;
+    background:var(--verde); color:var(--asfalto); font-weight:800; padding:11px 22px;
     border-radius:30px; font-size:0.9rem; opacity:0; pointer-events:none; transition:opacity .3s; z-index:60;
   }
   .toast.ver{opacity:1;}
@@ -155,7 +155,7 @@
   }
   nav button{
     flex:1; background:none; border:none; color:var(--tenue); cursor:pointer;
-    font-family:inherit; font-size:0.62rem; text-transform:uppercase; letter-spacing:0.05em;
+    font-family:inherit; font-size:0.62rem; letter-spacing:0.01em;
     padding:6px 2px; border-radius:10px;
   }
   nav button .ico{display:block; font-size:1.25rem; margin-bottom:2px;}
@@ -671,7 +671,7 @@ let toastT;
 function toast(msg, err){
   const t=$('toast'); t.textContent=msg;
   t.style.background = err ? 'var(--rojo)' : 'var(--verde)';
-  t.style.color = err ? '#fff' : '#101318';
+  t.style.color = err ? '#fff' : '#313031';
   t.classList.add('ver');
   clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('ver'), 2200);
 }
