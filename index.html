@@ -5,31 +5,31 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Rutia · Driver Track</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..900&family=Archivo+Black&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400..800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
-    --asfalto:#101318; --panel:#1A1F27; --panel2:#151A21; --linea:#2A313C;
-    --texto:#E8ECF1; --tenue:#8B95A3;
-    --ambar:#FFB020; --verde:#3DDC84; --rojo:#FF4D5E;
+    --asfalto:#313031; --panel:#3D3B3D; --panel2:#383638; --linea:#4C494C;
+    --texto:#E8ECF1; --tenue:#A7A2A6;
+    --ambar:#FFB020; --verde:#289866; --rojo:#FF4D5E;
     --radius:14px;
   }
   *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
   html{font-size:16px;}
   body{
     background:var(--asfalto); color:var(--texto);
-    font-family:'Archivo', -apple-system, 'Segoe UI', Roboto, sans-serif;
-    font-variation-settings:'wdth' 88;
+    font-family:'Manrope', -apple-system, 'Segoe UI', Roboto, sans-serif;
+    
     min-height:100vh; padding-bottom:84px;
   }
   .num{font-variant-numeric:tabular-nums; letter-spacing:-0.01em;}
-  h1,h2,.display{font-family:'Archivo Black','Archivo', sans-serif; font-weight:900;}
+  h1,h2,.display{font-family:'Manrope', sans-serif; font-weight:700;}
 
   header{
     padding:18px 18px 10px; display:flex; align-items:baseline; justify-content:space-between;
     border-bottom:1px solid var(--linea);
   }
-  header h1{font-size:1.05rem; letter-spacing:0.06em; text-transform:uppercase;}
+  header h1{font-size:1.05rem; letter-spacing:0.01em;}
   header h1 span{color:var(--ambar);}
   #fechaHoy{color:var(--tenue); font-size:0.8rem;}
 
@@ -45,14 +45,14 @@
   /* ===== Semáforo + odómetro ===== */
   .semaforo{display:flex; align-items:center; gap:10px; margin-bottom:12px;}
   .luces{display:flex; gap:6px;}
-  .luz{width:14px; height:14px; border-radius:50%; background:#2A313C; transition:all .3s;}
+  .luz{width:14px; height:14px; border-radius:50%; background:var(--linea); transition:all .3s;}
   .luz.on-r{background:var(--rojo); box-shadow:0 0 12px var(--rojo);}
   .luz.on-a{background:var(--ambar); box-shadow:0 0 12px var(--ambar);}
   .luz.on-v{background:var(--verde); box-shadow:0 0 12px var(--verde);}
   .estado-txt{font-weight:700; font-size:0.85rem;}
 
-  .odometro{font-family:'Archivo Black'; font-size:2.6rem; line-height:1; margin:4px 0 2px;}
-  .odometro small{font-size:1.1rem; color:var(--tenue); font-family:'Archivo';}
+  .odometro{font-family:'Manrope'; font-weight:700; font-size:2.6rem; line-height:1; margin:4px 0 2px;}
+  .odometro small{font-size:1.1rem; color:var(--tenue); font-family:'Manrope'; font-weight:400;}
 
   .gauge{position:relative; height:18px; background:var(--panel2); border:1px solid var(--linea); border-radius:9px; margin:14px 0 4px; overflow:visible;}
   .gauge-fill{position:absolute; left:0; top:0; bottom:0; width:0; border-radius:9px; background:linear-gradient(90deg, var(--rojo), var(--ambar) 55%, var(--verde)); transition:width .5s ease; max-width:100%;}
@@ -66,7 +66,7 @@
   .dato .l{font-size:0.68rem; color:var(--tenue); text-transform:uppercase; letter-spacing:0.08em;}
 
   /* ===== Formularios ===== */
-  label{display:block; font-size:0.72rem; color:var(--tenue); text-transform:uppercase; letter-spacing:0.1em; margin:12px 0 5px;}
+  label{display:block; font-size:0.72rem; color:var(--tenue); letter-spacing:0.02em; margin:12px 0 5px;}
   input, select{
     width:100%; padding:13px 14px; font-size:1.05rem; color:var(--texto);
     background:var(--panel2); border:1px solid var(--linea); border-radius:10px;
@@ -80,15 +80,15 @@
     flex:1; padding:12px; border-radius:10px; border:1px solid var(--linea);
     background:var(--panel2); color:var(--tenue); font-weight:700; font-size:0.95rem; cursor:pointer;
   }
-  .toggle-app button.sel{background:var(--ambar); color:#101318; border-color:var(--ambar);}
+  .toggle-app button.sel{background:var(--ambar); color:var(--asfalto); border-color:var(--ambar);}
 
   .btn{
     width:100%; padding:15px; margin-top:18px; border:none; border-radius:12px;
-    background:var(--ambar); color:#101318; font-family:'Archivo Black'; font-size:1rem;
-    letter-spacing:0.04em; cursor:pointer; text-transform:uppercase;
+    background:var(--ambar); color:var(--asfalto); font-family:'Manrope'; font-weight:700; font-size:1rem;
+    letter-spacing:0.01em; cursor:pointer;
   }
   .btn:active{transform:scale(.98);}
-  .btn.sec{background:transparent; border:1px solid var(--linea); color:var(--tenue); font-family:'Archivo'; font-weight:700; text-transform:none; padding:11px;}
+  .btn.sec{background:transparent; border:1px solid var(--linea); color:var(--tenue); font-family:'Manrope'; font-weight:500; text-transform:none; padding:11px;}
   .btn.peligro{background:transparent; border:1px solid var(--rojo); color:var(--rojo);}
 
   /* ===== Registros lista ===== */
@@ -120,10 +120,10 @@
 
   /* ===== Veredicto calculadora ===== */
   .veredicto{border-radius:var(--radius); padding:18px; text-align:center; margin-top:16px; border:1px solid var(--linea);}
-  .veredicto.tomalo{background:rgba(61,220,132,.08); border-color:var(--verde);}
+  .veredicto.tomalo{background:rgba(40,152,102,.08); border-color:var(--verde);}
   .veredicto.dejalo{background:rgba(255,77,94,.08); border-color:var(--rojo);}
   .veredicto.dudoso{background:rgba(255,176,32,.08); border-color:var(--ambar);}
-  .veredicto .titulo{font-family:'Archivo Black'; font-size:1.5rem;}
+  .veredicto .titulo{font-family:'Manrope'; font-weight:700; font-size:1.5rem;}
   .veredicto.tomalo .titulo{color:var(--verde);}
   .veredicto.dejalo .titulo{color:var(--rojo);}
   .veredicto.dudoso .titulo{color:var(--ambar);}
@@ -142,7 +142,7 @@
   .vacio{text-align:center; color:var(--tenue); padding:26px 10px; font-size:0.88rem; line-height:1.5;}
   .toast{
     position:fixed; bottom:96px; left:50%; transform:translateX(-50%);
-    background:var(--verde); color:#101318; font-weight:800; padding:11px 22px;
+    background:var(--verde); color:var(--asfalto); font-weight:800; padding:11px 22px;
     border-radius:30px; font-size:0.9rem; opacity:0; pointer-events:none; transition:opacity .3s; z-index:60;
   }
   .toast.ver{opacity:1;}
@@ -155,7 +155,7 @@
   }
   nav button{
     flex:1; background:none; border:none; color:var(--tenue); cursor:pointer;
-    font-family:inherit; font-size:0.62rem; text-transform:uppercase; letter-spacing:0.05em;
+    font-family:inherit; font-size:0.62rem; letter-spacing:0.01em;
     padding:6px 2px; border-radius:10px;
   }
   nav button .ico{display:block; font-size:1.25rem; margin-bottom:2px;}
@@ -329,9 +329,22 @@
       <button type="button" class="btn sec" id="btnExport">Copiar datos (respaldo CSV)</button>
       <button type="button" class="btn peligro" id="btnReset">Borrar todas las jornadas</button>
     </div>
+    <div class="card">
+      <div class="eyebrow">Cuenta</div>
+      <div id="cuentaEmail" class="num" style="margin-bottom:12px; color:var(--tenue);"></div>
+      <button type="button" class="btn sec" id="btnLogout">Cerrar sesión</button>
+    </div>
   </section>
 
 </main>
+
+<!-- ============ PANTALLA DE LOGIN ============ -->
+<div id="loginOverlay" style="position:fixed; inset:0; background:#151515; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; z-index:9999;">
+  <h1 style="margin:0;">Rutia <span style="opacity:.5;">·</span> Driver Track</h1>
+  <p style="color:var(--tenue); margin:0 0 8px; text-align:center; max-width:280px;">Inicia sesión para guardar tus jornadas de forma segura.</p>
+  <button type="button" class="btn" id="btnLoginGoogle" style="width:auto; padding:12px 24px;">Iniciar sesión con Google</button>
+  <div id="loginError" style="color:var(--rojo); font-size:.9rem;"></div>
+</div>
 
 <div class="toast" id="toast">Guardado ✓</div>
 
@@ -352,6 +365,7 @@ let appSel = 'Uber';
 
 const $ = id => document.getElementById(id);
 const fmt = n => '$' + Math.round(n||0).toLocaleString('es-CO');
+const esc = s => String(s??'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const hoyISO = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
 
 /* ================= CONFIGURACIÓN SUPABASE =================
@@ -362,6 +376,34 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 
 const nube = (SUPABASE_URL.startsWith('https://') && !SUPABASE_URL.includes('PEGA') && window.supabase)
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+/* ================= SESIÓN / LOGIN ================= */
+function mostrarApp(sesionOk, email){
+  $('loginOverlay').style.display = sesionOk ? 'none' : 'flex';
+  if(sesionOk) $('cuentaEmail').textContent = email || '';
+}
+
+async function iniciarSesion(){
+  if(!nube) return;
+  $('loginError').textContent = '';
+  const {error} = await nube.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: window.location.href } });
+  if(error) $('loginError').textContent = 'No se pudo iniciar sesión. Intenta de nuevo.';
+}
+
+async function cerrarSesion(){
+  if(!nube) return;
+  await nube.auth.signOut();
+  entradas = [];
+  lsSet('entradas', '[]');
+  mostrarApp(false);
+}
+
+if(nube){
+  nube.auth.onAuthStateChange((_evento, sesion)=>{
+    mostrarApp(!!sesion, sesion && sesion.user && sesion.user.email);
+    if(sesion){ cargar().then(()=>{ pintarRegs(); pintarHoy(); pintarTendencias(); }); }
+  });
+}
 
 function lsGet(k){ try{ return localStorage.getItem('tablero_'+k); }catch(e){ return null; } }
 function lsSet(k,v){ try{ localStorage.setItem('tablero_'+k, v); return true; }catch(e){ return false; } }
@@ -465,7 +507,7 @@ function pintarRegs(){
   cont.innerHTML = entradas.slice(0,15).map(e=>{
     const ph = e.horas>0 ? fmt(e.bruto/e.horas)+'/h' : '';
     return `<div class="reg">
-      <div class="izq"><div class="f num">${e.fecha}<span class="badge">${e.app}</span></div>
+      <div class="izq"><div class="f num">${esc(e.fecha)}<span class="badge">${esc(e.app)}</span></div>
       <div class="d num">${e.horas}h · ${e.viajes} viajes · ${e.km} km</div></div>
       <div class="der"><div class="m num">${fmt(e.bruto)}</div><div class="h num">${ph}</div></div>
       <button type="button" class="borrar" aria-label="Borrar jornada" data-id="${e.id}">✕</button>
@@ -618,7 +660,7 @@ function pintarTendencias(){
     const maxA = Math.max(...claves.map(k=>apps[k].b/apps[k].h));
     $('chartApps').innerHTML = claves.map(k=>{
       const v = apps[k].b/apps[k].h;
-      return `<div class="barra-fila"><div class="lbl lbl-ancho">${k}</div>
+      return `<div class="barra-fila"><div class="lbl lbl-ancho">${esc(k)}</div>
         <div class="barra-pista"><div class="barra" style="width:${v/maxA*100}%"></div></div>
         <div class="val num">${fmt(v)}</div></div>`;
     }).join('');
@@ -665,13 +707,15 @@ $('btnReset').addEventListener('click', async ()=>{
   pintarRegs(); pintarHoy(); pintarTendencias();
   toast('Jornadas borradas');
 });
+$('btnLoginGoogle').addEventListener('click', iniciarSesion);
+$('btnLogout').addEventListener('click', cerrarSesion);
 
 /* ================= UTIL ================= */
 let toastT;
 function toast(msg, err){
   const t=$('toast'); t.textContent=msg;
   t.style.background = err ? 'var(--rojo)' : 'var(--verde)';
-  t.style.color = err ? '#fff' : '#101318';
+  t.style.color = err ? '#fff' : '#313031';
   t.classList.add('ver');
   clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('ver'), 2200);
 }
@@ -681,6 +725,15 @@ function toast(msg, err){
   const d = new Date();
   $('fechaHoy').textContent = d.toLocaleDateString('es-CO',{weekday:'short', day:'numeric', month:'short'});
   $('rFecha').value = hoyISO();
+
+  if(nube){
+    const {data:{session}} = await nube.auth.getSession();
+    mostrarApp(!!session, session && session.user && session.user.email);
+    if(!session){ pintarConf(); return; }
+  } else {
+    mostrarApp(true);
+  }
+
   await cargar();
   pintarConf(); pintarRegs(); pintarHoy(); pintarTendencias();
 })();
